@@ -8,9 +8,9 @@ import feign.okhttp.OkHttpClient;
 import feign.slf4j.Slf4jLogger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import space.artway.artwaystorage.repository.DropboxClient;
-import space.artway.artwaystorage.repository.GoogleClient;
-import space.artway.artwaystorage.repository.YandexClient;
+import space.artway.artwaystorage.client.DropboxClient;
+import space.artway.artwaystorage.client.GoogleClient;
+import space.artway.artwaystorage.client.YandexClient;
 
 @Configuration
 public class FeignConfig {
@@ -45,6 +45,6 @@ public class FeignConfig {
                 .logLevel(Logger.Level.FULL)
                 .decoder(new JacksonDecoder())
                 .encoder(new JacksonEncoder())
-                .target(YandexClient.class, "https://cloud-api.yandex.net");
+                .target(YandexClient.class, "https://cloud-api.yandex.net/v1");
     }
 }
