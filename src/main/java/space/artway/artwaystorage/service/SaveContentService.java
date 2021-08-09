@@ -1,5 +1,8 @@
 package space.artway.artwaystorage.service;
 
+import feign.Feign;
+import feign.Response;
+import feign.form.spring.SpringFormEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -7,6 +10,7 @@ import space.artway.artwaystorage.repository.DropboxClient;
 import space.artway.artwaystorage.repository.GoogleClient;
 import space.artway.artwaystorage.repository.YandexClient;
 import space.artway.artwaystorage.service.dto.dropbox.DropboxAbout;
+import space.artway.artwaystorage.service.dto.dropbox.DropboxUpload;
 import space.artway.artwaystorage.service.dto.google.GoogleAboutDrive;
 import space.artway.artwaystorage.service.dto.yandex.YandexAboutDisk;
 
@@ -23,6 +27,7 @@ public class SaveContentService {
         StorageType storageType = chooseStorage(file.getSize());
         switch (storageType) {
             case DROPBOX://todo
+                saveDropbox(file);
                 break;
             case GOOGLE_DRIVE://todo
                 break;
@@ -30,6 +35,14 @@ public class SaveContentService {
                 break;
             default: //todo
         }
+    }
+
+    private void saveDropbox(MultipartFile file) {
+        String token = "";
+        DropboxClient uploadResource = Feign.builder().encoder(new SpringFormEncoder())
+                .target(DropboxClient.class, "https://content.dropboxapi.com/2/files/upload_session/start");
+
+        DropboxUpload upload = uploadResource.uploadFile(token, "", file);
     }
 
     private StorageType chooseStorage(Long fileSize) {
