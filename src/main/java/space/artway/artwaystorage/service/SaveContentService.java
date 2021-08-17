@@ -10,6 +10,7 @@ import space.artway.artwaystorage.client.DropboxClient;
 import space.artway.artwaystorage.client.GoogleClient;
 import space.artway.artwaystorage.client.YandexClient;
 import space.artway.artwaystorage.service.dto.dropbox.DropboxAbout;
+import space.artway.artwaystorage.service.dto.dropbox.DropboxUpload;
 import space.artway.artwaystorage.service.dto.google.GoogleAboutDrive;
 import space.artway.artwaystorage.service.dto.yandex.YandexAboutDisk;
 import space.artway.artwaystorage.service.dto.yandex.YandexUploadLink;
@@ -27,6 +28,7 @@ public class SaveContentService {
         StorageType storageType = chooseStorage(file.getSize());
         switch (storageType) {
             case DROPBOX://todo
+                saveDropbox(file);
                 break;
             case GOOGLE_DRIVE://todo
                 break;
@@ -35,6 +37,14 @@ public class SaveContentService {
                 break;
             default: //todo
         }
+    }
+
+    private void saveDropbox(MultipartFile file) {
+        String token = "";
+        DropboxClient uploadResource = Feign.builder().encoder(new SpringFormEncoder())
+                .target(DropboxClient.class, "https://content.dropboxapi.com/2/files/upload_session/start");
+
+        DropboxUpload upload = uploadResource.uploadFile(token, "", file);
     }
 
     private void saveOnYandexDisk(MultipartFile file) {
