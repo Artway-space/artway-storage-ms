@@ -1,4 +1,4 @@
-package space.artway.artwaystorage.repository;
+package space.artway.artwaystorage.client;
 
 import feign.Headers;
 import feign.Param;
