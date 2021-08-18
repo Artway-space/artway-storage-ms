@@ -4,7 +4,9 @@ import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 import space.artway.artwaystorage.service.dto.google.GoogleAboutDrive;
+import space.artway.artwaystorage.service.dto.google.GoogleFile;
 
 @Component
 public interface GoogleClient {
@@ -13,6 +15,8 @@ public interface GoogleClient {
     @Headers({"Content-Type: application/json", "Accept: application/json", "Authorization: Bearer {token}"})
     GoogleAboutDrive getSpaceInfo(@Param("token") String token, @Param("client_id") String clientId );
 
-
+    @RequestLine("POST /upload/drive/v3/files?uploadType=multipart")
+    @Headers({"Content-Type: application/json", "Authorization: Bearer {token}"})
+    GoogleFile uploadFile(@Param("token") String token, @Param("file") MultipartFile file);
 
 }
