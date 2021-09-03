@@ -3,23 +3,21 @@ package space.artway.artwaystorage.client;
 import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
-import feign.Response;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
-import space.artway.artwaystorage.service.dto.yandex.YandexAboutDisk;
-import space.artway.artwaystorage.service.dto.yandex.YandexUploadLink;
+import space.artway.artwaystorage.service.dto.yandex.YandexAccessToken;
 
 @Component
 public interface YandexClient {
 
-    @RequestLine("GET /disk/")
-    @Headers({"Content-Type: application/json", "Accept: application/json", "Authorization: OAuth {token}"})
-    YandexAboutDisk getSpaceInfo(@Param("token") String token);
+    @RequestLine("POST token")
+    @Headers({"Content-Type:application/x-www-form-urlencoded", "Authorization: Basic {encoded_string}"})
+    YandexAccessToken getToken(@Param("encoded_string") String auth,
+                               @Param("grant_type") String grantType,
+                               @Param("code") String code);
 
-    @RequestLine("GET /disk/resources/upload?path=app:/")
-    @Headers({"Content-Type: application/json", "Accept: application/json", "Authorization: OAuth {token}"})
-    YandexUploadLink getUploadLink(@Param("token") String token);
-
-    @RequestLine("PUT")
-    Response uploadFile(@Param("file")MultipartFile file);
+    @RequestLine("POST token")
+    @Headers({"Content-Type:application/x-www-form-urlencoded", "Authorization: Basic {encoded_string}"})
+    YandexAccessToken refreshToken(@Param("encoded_string") String auth,
+                                   @Param("grant_type") String grantType,
+                                   @Param("refresh_token") String refreshToken);
 }
