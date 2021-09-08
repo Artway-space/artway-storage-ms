@@ -21,7 +21,23 @@
 
     <div class="row align-items-start">
         <div class="col">
-            <div class="card mb-3" style="max-width: 540px;">
+            <div th:if="${hasYndxToken}" class="card mb-3" style="max-width: 540px;">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img th:src="@{/img/yandex_disk_logo.png}" class="card-img-top sm" alt="Yandex Disk logo">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">Token got</h5>
+                            <p class="card-text">Token expires: <span th:text="${yndxTokenExpiresDate}"></span></p>
+                            <a th:href="@{https://passport.yandex.ru/profile/access}" class="btn btn-primary">Revoke
+                                Token</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:unless="${hasYndxToken}" class="card mb-3" style="max-width: 540px;">
                 <div class="row g-0">
                     <div class="col-md-4">
                         <img th:src="@{/img/yandex_disk_logo.png}" class="card-img-top sm" alt="Yandex Disk logo">
@@ -36,10 +52,26 @@
                     </div>
                 </div>
             </div>
-        </div>
 
+        </div>
         <div class="col">
-            <div class="card mb-3" style="max-width: 540px;">
+            <div th:if="${hasDbxToken}" class="card mb-3" style="max-width: 540px;">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img th:src="@{/img/dropbox-logo@2x.jpeg}" class="card-img-top sm" alt="Dropbox logo">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">Token got</h5>
+                            <p class="card-text">Token expires: <span th:text="${dbxTokenExpiresDate}"></span></p>
+                            <a th:href="@{/admin/revoke-dbx-token}"
+                               class="btn btn-primary">Revoke Token</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:unless="${hasDbxToken}" class="card mb-3" style="max-width: 540px;">
                 <div class="row g-0">
                     <div class="col-md-4">
                         <img th:src="@{/img/dropbox-logo@2x.jpeg}" class="card-img-top sm" alt="Dropbox logo">
@@ -48,7 +80,7 @@
                         <div class="card-body">
                             <h5 class="card-title">Get Dropbox Code</h5>
                             <p class="card-text">Click here to get code from Dropbox</p>
-                            <a th:href="@{https://www.dropbox.com/oauth2/authorize?&token_access_type=offline&response_type=code&redirect_uri=http://localhost:8089/api/auth/dropbox&(client_id=${dbxClientId})}"
+                            <a th:href="@{https://www.dropbox.com/oauth2/authorize?token_access_type=offline&response_type=code(redirect_uri=${dbxRedirectUri}, client_id=${dbxClientId})}"
                                class="btn btn-primary">Get Code</a>
                         </div>
                     </div>
@@ -56,17 +88,32 @@
             </div>
         </div>
         <div class="col">
-            <div class="card mb-3" style="max-width: 540px;">
+            <div th:if="${hasGoogleToken}" class="card mb-3" style="max-width: 540px;">
                 <div class="row g-0">
                     <div class="col-md-4">
-                        <img th:src="@{/img/google-drive-logo.png}" class="card-img-top sm" alt="Dropbox logo">
+                        <img th:src="@{/img/google-drive-logo.png}" class="card-img-top sm" alt="Google Drive logo">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">Token got</h5>
+                            <p class="card-text">Token expires: <span th:text="${googleTokenExpiresDate}"></span></p>
+                            <a th:href="@{/admin/revoke-google-token}"
+                               class="btn btn-primary">Revoke Token</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:unless="${hasGoogleToken}" class="card mb-3" style="max-width: 540px;">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img th:src="@{/img/google-drive-logo.png}" class="card-img-top sm" alt="Google Drive logo">
                     </div>
                     <div class="col-md-8">
                         <div class="card-body">
                             <h5 class="card-title">Get Google Drive Token</h5>
                             <p class="card-text">Click here to get Google Drive OAuthToken</p>
-                            <a th:href="@{https://accounts.google.com/o/oauth2/v2/auth?scope=https%3A//www.googleapis.com/auth/drive&access_type=offline&include_granted_scopes=true&response_type=code&state=state_parameter_passthrough_value&redirect_uri=http%3A//localhost:8089/api/auth/google&client_id=135842521742-ubu562041isbpdfilic6h91e2tl9q086.apps.googleusercontent.com}"
-                               class="btn btn-primary">Get Token</a>
+                            <a th:href="@{https://accounts.google.com/o/oauth2/v2/auth?scope=https%3A//www.googleapis.com/auth/drive&access_type=offline&include_granted_scopes=true&response_type=code&state=state_parameter_passthrough_value&redirect_uri=http%3A//{host_port}/api/auth/google&client_id={client_id} (host_port=${hostAndPort}, client_id=${googleClientId})}"class="btn btn-primary">Get Token</a>
                         </div>
                     </div>
                 </div>

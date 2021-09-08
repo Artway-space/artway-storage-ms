@@ -15,8 +15,8 @@ public class DropboxAccessToken implements Serializable {
     @JsonProperty("access_token")
     private String accessToken;
 
-    @JsonProperty("expired_in")
-    private String expiredIn;
+    @JsonProperty("expires_in")
+    private String expiresIn;
 
     @JsonProperty("token_type")
     private String tokenType;

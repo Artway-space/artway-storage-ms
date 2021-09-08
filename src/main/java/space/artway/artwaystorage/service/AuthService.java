@@ -2,6 +2,7 @@ package space.artway.artwaystorage.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -71,7 +72,7 @@ public class AuthService {
 
     public void dropboxRefreshToken() {
         DropboxAccessToken oldToken = (DropboxAccessToken) tokenRepository.findByKey(StorageType.DROPBOX);
-        if (isExpired(oldToken.getCreatedDate(), Long.parseLong(oldToken.getExpiredIn()))) {
+        if (StringUtils.isNotEmpty(oldToken.getExpiresIn()) && isExpired(oldToken.getCreatedDate(), Long.parseLong(oldToken.getExpiresIn()))) {
             String auth = Base64.getEncoder().encodeToString((dropboxAppKey + ":" + dropboxAppSecret).getBytes(StandardCharsets.UTF_8));
             final DropboxAccessToken token = dropboxClient.refreshToken(auth, oldToken.getRefreshToken(), REFRESH_TOKEN);
             if (token.getRefreshToken() == null) {
@@ -79,6 +80,12 @@ public class AuthService {
             }
             tokenRepository.save(StorageType.DROPBOX, token);
         }
+    }
+
+    public void revokeDropboxToken(){
+        DropboxAccessToken token = (DropboxAccessToken) tokenRepository.findByKey(StorageType.DROPBOX);
+        dropboxClient.revokeToken(token.getAccessToken());
+        tokenRepository.deleteByKey(StorageType.DROPBOX);
     }
 
     public void getGoogleToken(String code) {
@@ -94,7 +101,7 @@ public class AuthService {
 
     public void googleRefreshToken() {
         GoogleAccessToken oldToken = (GoogleAccessToken) tokenRepository.findByKey(StorageType.GOOGLE_DRIVE);
-        if (isExpired(oldToken.getCreatedDate(), oldToken.getExpiredIn())) {
+        if (isExpired(oldToken.getCreatedDate(), oldToken.getExpiresIn())) {
             Map<String, String> formParams = new HashMap<>();
             formParams.put("client_id", googleClientId);
             formParams.put("client_secret", googleClientSecret);
@@ -103,6 +110,12 @@ public class AuthService {
             GoogleAccessToken token = googleClient.getToken(formParams);
             tokenRepository.save(StorageType.GOOGLE_DRIVE, token);
         }
+    }
+
+    public void revokeGoogleToken() {
+        GoogleAccessToken token = (GoogleAccessToken) tokenRepository.findByKey(StorageType.GOOGLE_DRIVE);
+        googleClient.revokeToken(token.getAccessToken());
+        tokenRepository.deleteByKey(StorageType.GOOGLE_DRIVE);
     }
 
     @Scheduled(fixedDelay = 1000 * 60 * 60) //One hour

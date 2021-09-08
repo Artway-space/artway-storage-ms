@@ -7,4 +7,6 @@ public interface TokenRepository<K, V> {
     void save(K key, V value);
 
     V findByKey(K key);
+
+    Long deleteByKey(K key);
 }

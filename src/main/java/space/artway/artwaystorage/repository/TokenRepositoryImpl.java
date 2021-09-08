@@ -1,5 +1,6 @@
 package space.artway.artwaystorage.repository;
 
+import com.google.common.collect.ImmutableList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -18,5 +19,10 @@ public class TokenRepositoryImpl implements TokenRepository<StorageType, Object>
     @Override
     public Object findByKey(StorageType key) {
         return redisTemplate.opsForValue().get(key);
+    }
+
+    @Override
+    public Long deleteByKey(StorageType key){
+        return redisTemplate.delete(ImmutableList.of(key));
     }
 }

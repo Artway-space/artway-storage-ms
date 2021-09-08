@@ -7,6 +7,7 @@ spring:
     database: 0
     timeout: 60000
 server:
+  host: localhost
   port: 8089
 
 eureka:
@@ -22,10 +23,12 @@ artway:
       dropbox:
         app_key: 30qk6j768efybi5
         app_secret: ol70wqk968r7jbk
+        redirect_uri: http://localhost:8089/api/auth/dropbox
       google-drive:
         client_id: 135842521742-ubu562041isbpdfilic6h91e2tl9q086.apps.googleusercontent.com
         client_secret: 39S0W8SmXdh6TLZa6ylq4hyT
       yandex-disk:
         client_id: 7a6ec505852b423aa959e76c748df472
         client_secret: ed179546687c4f8fa0664abde413eb88
+        redirect_url: http://localhost:8089/api/auth/yandex
 

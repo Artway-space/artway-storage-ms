@@ -19,7 +19,7 @@ public class GoogleAccessToken implements Serializable {
 
     @JsonProperty(value = "expires_in")
     @JsonPropertyDescription("The remaining lifetime of the access token in seconds.")
-    private Long expiredIn;
+    private Long expiresIn;
 
     @JsonProperty(value = "token_type")
     @JsonPropertyDescription("The type of token returned. At this time, this field's value is always set to Bearer")

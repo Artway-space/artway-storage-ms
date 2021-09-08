@@ -21,4 +21,8 @@ public interface DropboxClient {
     DropboxAccessToken refreshToken(@Param("encoded_string") String auth,
                                 @Param("refresh_token") String refreshToken,
                                 @Param("grant_type") String grandType);
+
+    @RequestLine("POST /2/auth/token/revoke")
+    @Headers({"Authorization: Bearer {access_token}"})
+    void revokeToken(@Param("access_token") String accessToken);
 }
