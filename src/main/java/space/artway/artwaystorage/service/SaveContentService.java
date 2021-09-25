@@ -4,17 +4,9 @@ import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.FileMetadata;
 import com.dropbox.core.v2.users.SpaceUsage;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.http.AbstractInputStreamContent;
 import com.google.api.client.http.InputStreamContent;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.About;
 import com.yandex.disk.rest.ProgressListener;
 import com.yandex.disk.rest.ResourcesArgs;
@@ -28,8 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import space.artway.artwaystorage.model.Content;
 import space.artway.artwaystorage.model.StorageType;
+import space.artway.artwaystorage.repository.ContentRepository;
 import space.artway.artwaystorage.repository.TokenRepository;
+import space.artway.artwaystorage.service.dto.FileDto;
 import space.artway.artwaystorage.service.dto.dropbox.DropboxAccessToken;
 import space.artway.artwaystorage.service.dto.google.GoogleAccessToken;
 import space.artway.artwaystorage.service.dto.yandex.YandexAccessToken;
@@ -37,45 +32,42 @@ import space.artway.artwaystorage.service.dto.yandex.YandexAccessToken;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
 public class SaveContentService {
-    private final TokenRepository tokenRepository;
-    private final String yandexToken;
-    private final String googleToken;
-    private final String dropboxToken;
+    private final ContentRepository<String> contentRepository;
+    private final AccessTokenInjector accessTokenInjector;
+    private String yandexToken;
+    private String googleToken;
+    private String dropboxToken;
 
-    public SaveContentService(TokenRepository tokenRepository) {
-        this.tokenRepository = tokenRepository;
-        YandexAccessToken yandexAccessToken = (YandexAccessToken) tokenRepository.findByKey(StorageType.YANDEX_DISK);
-        DropboxAccessToken dropboxAccessToken = (DropboxAccessToken) tokenRepository.findByKey(StorageType.DROPBOX);
-        GoogleAccessToken googleAccessToken = (GoogleAccessToken) tokenRepository.findByKey(StorageType.GOOGLE_DRIVE);
-
-        yandexToken = Optional.ofNullable(yandexAccessToken).orElseGet(YandexAccessToken::new).getAccessToken();
-        dropboxToken = Optional.ofNullable(dropboxAccessToken).orElseGet(DropboxAccessToken::new).getAccessToken();
-        googleToken = Optional.ofNullable(googleAccessToken).orElseGet(GoogleAccessToken::new).getAccessToken();
+    public SaveContentService(TokenRepository tokenRepository, ContentRepository<String> contentRepository) {
+        this.accessTokenInjector = new AccessTokenInjector(tokenRepository);
+        this.contentRepository = contentRepository;
     }
 
-    //ToDO get token not in Constructor
-
     @SneakyThrows
-    public void saveContent(MultipartFile file) {
+    public FileDto saveContent(MultipartFile file) {
+        dropboxToken = accessTokenInjector.getToken(StorageType.DROPBOX, DropboxAccessToken.class);
+        googleToken = accessTokenInjector.getToken(StorageType.GOOGLE_DRIVE, GoogleAccessToken.class);
+        yandexToken = accessTokenInjector.getToken(StorageType.YANDEX_DISK, YandexAccessToken.class);
         StorageType storageType = chooseStorage(file.getSize());
+        FileDto fileDto;
         switch (storageType) {
             case DROPBOX://todo
-                saveDropbox(file, DropboxUtils.getAcceptor(dropboxToken));
+               fileDto = saveDropbox(file, DropboxUtils.getAcceptor(dropboxToken));
                 break;
-            case GOOGLE_DRIVE://todo
-                saveGoogleDrive(file, GoogleDriveUtils.getAcceptor(googleToken));
+            case GOOGLE_DRIVE:
+               fileDto = saveGoogleDrive(file, GoogleDriveUtils.getAcceptor(googleToken));
                 break;
             case YANDEX_DISK://todo
-                saveOnYandexDisk(file, YandexDiskUtils.getAcceptor(yandexToken));
+               fileDto = saveOnYandexDisk(file, YandexDiskUtils.getAcceptor(yandexToken));
                 break;
-            default: //todo
+            default: throw new UnsupportedOperationException();
         }
+        return fileDto;
     }
 
     private StorageType chooseStorage(Long fileSize) throws ServerIOException, IOException {
@@ -108,7 +100,7 @@ public class SaveContentService {
     }
 
     @SneakyThrows
-    private void saveGoogleDrive(MultipartFile file, Drive drive) {
+    private FileDto saveGoogleDrive(MultipartFile file, Drive drive) {
         AbstractInputStreamContent content = new InputStreamContent(file.getContentType(), file.getInputStream());
         com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
         fileMetadata.setName(file.getName());
@@ -117,20 +109,38 @@ public class SaveContentService {
                 .setFields("id, webContentLink, webViewLink, parents")
                 .execute();
 
-        //ToDo return something
+        Content savedFile = new Content();
+        savedFile.setStorageType(StorageType.GOOGLE_DRIVE);
+        savedFile.setFileId(uploadedFile.getId());
+        savedFile.setFilename(uploadedFile.getOriginalFilename());
+
+        FileDto fileDto = new FileDto(UUID.randomUUID().toString(), savedFile.getFilename());
+
+        contentRepository.save(fileDto.getId(), savedFile);
+        return fileDto;
     }
 
-    private void saveDropbox(MultipartFile file, DbxClientV2 clientV2) {
+    private FileDto saveDropbox(MultipartFile file, DbxClientV2 clientV2) {
         try (InputStream in = file.getInputStream()) {
             FileMetadata fileMetadata = clientV2.files().upload("/" + file.getName()).uploadAndFinish(in);
-            //ToDo return something
+            Content savedContent = new Content();
+            savedContent.setPath(fileMetadata.getPathDisplay());
+            savedContent.setFilename(fileMetadata.getName());
+            savedContent.setStorageType(StorageType.DROPBOX);
+            savedContent.setFileId(fileMetadata.getId());
+
+            FileDto fileDto = new FileDto(UUID.randomUUID().toString(), savedContent.getFilename());
+
+            contentRepository.save(fileDto.getId(), savedContent);
+            return fileDto;
         } catch (IOException | DbxException e) {
             log.error(e.getMessage(), e.fillInStackTrace());
+            throw new RuntimeException();
         }
     }
 
     @SneakyThrows
-    private void saveOnYandexDisk(MultipartFile file, RestClient restClient) {
+    private FileDto saveOnYandexDisk(MultipartFile file, RestClient restClient) {
         Link uploadLink = restClient.getUploadLink("disk:/" + file.getName(), true);
         restClient.uploadFile(uploadLink, false, multipartToFile(file, file.getName()), new ProgressListener() {
             @Override
@@ -145,9 +155,17 @@ public class SaveContentService {
         });
 
         ResourceList lastUploadedResources = restClient.getLastUploadedResources(new ResourcesArgs.Builder()
+                        .setFields("name, items.path")
                 .setLimit(1)
                 .build());
-        //ToDo return something
+        Content savedContent = new Content();
+        savedContent.setStorageType(StorageType.YANDEX_DISK);
+        savedContent.setFilename(lastUploadedResources.getItems().get(0).getName());
+        savedContent.setPath(lastUploadedResources.getPath());
+
+        FileDto fileDto = new FileDto(UUID.randomUUID().toString(), savedContent.getFilename());
+        contentRepository.save(fileDto.getId(), savedContent);
+        return fileDto;
     }
 
     @SneakyThrows
@@ -171,19 +189,5 @@ public class SaveContentService {
         File convFile = new File(fileName);
         multipart.transferTo(convFile);
         return convFile;
-    }
-
-    private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
-
-        String clientSecret = "EGxd2ef11BCkCCFuHaWefZhT";
-        String clientId = "135842521742-lodb1fo7r02b757qtdk5ht5cq6rmapmv.apps.googleusercontent.com";
-
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                HTTP_TRANSPORT, JacksonFactory.getDefaultInstance(), clientId, clientSecret, Collections.singletonList(DriveScopes.DRIVE))
-                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File("tokens")))
-                .setAccessType("offline")
-                .build();
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 }

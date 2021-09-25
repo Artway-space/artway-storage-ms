@@ -3,17 +3,18 @@ package space.artway.artwaystorage.service.dto.dropbox;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import space.artway.artwaystorage.service.dto.AccessToken;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class DropboxAccessToken implements Serializable {
+public class DropboxAccessToken extends AccessToken implements Serializable {
     //private static final long serialVersionUID = -8249582491158650400L;
 
-    @JsonProperty("access_token")
-    private String accessToken;
+//    @JsonProperty("access_token")
+//    private String accessToken;
 
     @JsonProperty("expires_in")
     private String expiresIn;
