@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import space.artway.artwaystorage.service.dto.AccessToken;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -12,10 +13,10 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @JsonClassDescription("Google OAuth token")
-public class GoogleAccessToken implements Serializable {
-    @JsonProperty(value = "access_token")
-    @JsonPropertyDescription("The token that your application sends to authorize a Google API request")
-    private String accessToken;
+public class GoogleAccessToken extends AccessToken implements Serializable {
+//    @JsonProperty(value = "access_token")
+//    @JsonPropertyDescription("The token that your application sends to authorize a Google API request")
+//    private String accessToken;
 
     @JsonProperty(value = "expires_in")
     @JsonPropertyDescription("The remaining lifetime of the access token in seconds.")
