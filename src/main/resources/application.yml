@@ -26,8 +26,8 @@ artway:
   storage:
     cloud:
       dropbox:
-        app_key: 30qk6j768efybi5
-        app_secret: ol70wqk968r7jbk
+        app_key: z9sz2i21nzfqdle
+        app_secret: 6vos6gcy2qv4qpo
         redirect_uri: http://localhost:8089/api/auth/dropbox
       google-drive:
         client_id: 135842521742-ubu562041isbpdfilic6h91e2tl9q086.apps.googleusercontent.com
