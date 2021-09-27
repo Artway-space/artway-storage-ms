@@ -31,12 +31,21 @@ public class DeleteService {
         this.contentRepository = contentRepository;
     }
 
-    public void deleteContent(String contentId){
+    public void deleteContent(String contentId) {
         final Content content = contentRepository.findById(contentId);
-        switch (content.getStorageType()){
-            case DROPBOX: deleteFromDropbox(content.getPath());
-            case GOOGLE_DRIVE: deleteFromGoogleDrive(content.getFileId());
-            case YANDEX_DISK: deleteFromYandexDisk(content.getPath());
+        switch (content.getStorageType()) {
+            case DROPBOX:
+                deleteFromDropbox(content.getPath());
+                deleteFromDatabase(contentId);
+                break;
+            case GOOGLE_DRIVE:
+                deleteFromGoogleDrive(content.getFileId());
+                deleteFromDatabase(contentId);
+                break;
+            case YANDEX_DISK:
+                deleteFromYandexDisk(content.getPath());
+                deleteFromDatabase(contentId);
+                break;
         }
     }
 
@@ -73,5 +82,7 @@ public class DeleteService {
         }
     }
 
-
+    private void deleteFromDatabase(String contentId) {
+        contentRepository.findById(contentId);
+    }
 }
