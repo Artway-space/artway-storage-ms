@@ -11,6 +11,10 @@ spring:
     port: 6379
     database: 2
     timeout: 60000
+  servlet:
+    multipart:
+      max-file-size: 1GB
+      max-request-size: 1GB
 server:
   host: localhost
   port: 8089

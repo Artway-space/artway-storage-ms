@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>space.artway</groupId>
-    <artifactId>artway-storege-ms</artifactId>
+    <artifactId>artway-storage-ms</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>artway-storege-ms</name>
-    <description>artway-storege-ms</description>
+    <name>artway-storage-ms</name>
+    <description>artway-storage-ms</description>
     <properties>
         <java.version>11</java.version>
         <spring-cloud.version>2020.0.3</spring-cloud.version>
@@ -120,6 +120,13 @@
             <artifactId>commons-pool2</artifactId>
             <version>2.9.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-contract-verifier</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -145,6 +152,18 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-contract-maven-plugin</artifactId>
+                <version>3.0.2</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <testFramework>JUNIT5</testFramework>
+                    <baseClassForTests>
+                        space.artway.artwaystorage.ArtwayStorageMsApplicationTests
+                    </baseClassForTests>
                 </configuration>
             </plugin>
         </plugins>
